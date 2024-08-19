@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { StyleSheet, View, Text, ImageBackground, FlatList } from "react-native"
+import { StyleSheet, View, Text, ImageBackground, FlatList, TouchableOpacity } from "react-native"
 
 import moment from "moment"
 import 'moment/locale/pt-br'
@@ -7,10 +7,16 @@ import 'moment/locale/pt-br'
 import today_Image from "../../assets/imgs/today.jpg"
 
 import Task from "../components/Task"
+import { Icon } from "react-native-vector-icons/Icon"
+import Icon from "react-native-vector-icons/FontAwesome6"
+
 
 export default class TaskList extends Component {
 
 state = {
+    show_done_task: true,
+    visible_tasks:[],
+
 
     tasks:[{
         id: Math.random(),
@@ -24,9 +30,26 @@ state = {
         estimate_at: moment(new Date()).add(60, "days"),
         done_at: null
     },
-]
+]}
 
+componentDidMount =  () => {
+    this.filter_tasks()
 }
+
+
+
+filter_tasks = () => {
+    let visible_tasks = null
+    if(this.state.show_done_task){
+        visible_tasks = [this.state.tasks]
+    }else{
+        const pending = task => task.done_at === null
+        visible_tasks = this.state.task.filter(pending)
+    }
+    this.setState({visible_tasks})
+}
+
+
 
 toggle_task = task_id =>{
     const tasks = [...this.state.tasks]
@@ -35,6 +58,10 @@ toggle_task = task_id =>{
             task.done_at = task.done_at !=null ? null : new Date()
         }
     })
+    this.setState({tasks})
+}
+toggle_filter = () => {
+    this.setState({show_done_task: !this.state.show_done_task}, this.filter_tasks)
 }
 
     render() {
@@ -42,6 +69,13 @@ toggle_task = task_id =>{
         return (
             <View style={styles.container}>
                 <ImageBackground source={today_Image} style={styles.background}>
+                   <view style={styles.icon_bar}>
+                   <TouchableOpacity onPress={this.toggle_filter}>
+                    <Icon name={this.show_done_task ? 'eye' : 'eye-splash'} size={20} color="#FFF"></Icon>
+                   </TouchableOpacity>
+                   <Icon name="eye" size={20} color="#FFF"></Icon>
+
+                   </view>
                     <View style={styles.titleBar}>
                         <Text style={styles.title}>Hoje</Text>
                         <Text style={styles.subTitle}>{today}</Text>
@@ -49,7 +83,7 @@ toggle_task = task_id =>{
                 </ImageBackground>
                 <View style={styles.taskList}>
                 <FlatList
-                data={this.state.tasks}
+                data={this.state.visible_tasks}
                 keyExtractor={item => `${item.id}`}
                 renderItem={({item}) => <Task {...item} taggle_task = {this.toggle_task} />}
                 />
@@ -95,6 +129,12 @@ const styles = StyleSheet.create({
         color: '#FFF',
         marginLeft: 20,
         marginBottom: 30
+    },
+    icon_bar:{
+        flexDirection: 'row',
+        marginHorizontal: 20,
+        marginTop: 50,
+        justifyContent: 'flex-end'
     }
 })
 
